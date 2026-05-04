@@ -7,13 +7,50 @@ function getTodayDate() {
 
   const now = new Date();
 
-  return new Intl.DateTimeFormat(
-    "en-CA",
-    {
-      timeZone:
-        "America/Bogota",
-    }
-  ).format(now);
+  /*
+    FECHA SEGURA
+    YYYY-MM-DD
+  */
+
+  const formatter =
+    new Intl.DateTimeFormat(
+      "en-CA",
+      {
+        timeZone:
+          "America/Bogota",
+
+        year: "numeric",
+
+        month: "2-digit",
+
+        day: "2-digit",
+      }
+    );
+
+  const parts =
+    formatter.formatToParts(
+      now
+    );
+
+  const year =
+    parts.find(
+      (p) =>
+        p.type === "year"
+    )?.value;
+
+  const month =
+    parts.find(
+      (p) =>
+        p.type === "month"
+    )?.value;
+
+  const day =
+    parts.find(
+      (p) =>
+        p.type === "day"
+    )?.value;
+
+  return `${year}-${month}-${day}`;
 
 }
 
@@ -110,6 +147,11 @@ export async function getRemainingQueriesFromDB(
 
   const today =
     getTodayDate();
+
+  console.log(
+    "TODAY DATE:",
+    today
+  );
 
   const {
     data,
@@ -247,6 +289,20 @@ export async function consumeQueryFromDB(
       );
 
     }
+
+    return;
+
+  }
+
+  /*
+    EVITAR
+    EXCEDER LÍMITE
+  */
+
+  if (
+    data.queries_used >=
+    DAILY_LIMIT
+  ) {
 
     return;
 
