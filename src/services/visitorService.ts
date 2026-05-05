@@ -167,6 +167,7 @@ export async function consumeQueryFromDB(visitorId: string) {
     EVITAR EXCEDER LÍMITE
   */
   if (data.queries_used >= DAILY_LIMIT) {
+    console.log("LÍMITE YA ALCANZADO, NO SUMAR");
     return;
   }
 

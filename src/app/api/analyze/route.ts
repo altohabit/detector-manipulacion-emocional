@@ -1,5 +1,4 @@
-import { NextResponse }
-  from "next/server";
+import { NextResponse } from "next/server";
 
 const SYSTEM_PROMPT = `
 Eres un analista especializado en manipulación emocional, dinámicas psicológicas tóxicas, gaslighting, culpa inducida, chantaje emocional, control psicológico, dependencia emocional, invalidación emocional y abuso psicológico sutil.
@@ -102,7 +101,6 @@ REGLAS PARA CADA CAMPO:
 */
 
 const blockedPatterns = [
-
   "ignora instrucciones",
 
   "ignora las instrucciones",
@@ -122,423 +120,263 @@ const blockedPatterns = [
   "eres chatgpt",
 
   "haz cualquier cosa",
-
 ];
 
 /*
   DETECTAR TEXTO BASURA
 */
 
-function isGibberish(
-  text: string
-) {
+function isGibberish(text: string) {
+  const clean = text.toLowerCase().replace(/[^a-záéíóúñ]/g, "");
 
-  const clean =
-    text
-      .toLowerCase()
-      .replace(
-        /[^a-záéíóúñ]/g,
-        ""
-      );
-
-  if (
-    clean.length < 8
-  ) {
-
+  if (clean.length < 8) {
     return false;
-
   }
 
-  const repeatedPattern =
-    /^(.{1,4})\1+$/;
+  const repeatedPattern = /^(.{1,4})\1+$/;
 
-  if (
-    repeatedPattern.test(
-      clean
-    )
-  ) {
-
+  if (repeatedPattern.test(clean)) {
     return true;
-
   }
 
-  const repeatedLetters =
-    /(.)\1{5,}/;
+  const repeatedLetters = /(.)\1{5,}/;
 
-  if (
-    repeatedLetters.test(
-      clean
-    )
-  ) {
-
+  if (repeatedLetters.test(clean)) {
     return true;
-
   }
 
   return false;
-
 }
 
-export async function POST(
-  request: Request
-) {
-
+export async function POST(request: Request) {
   try {
-
     /*
       OBTENER IP
     */
 
-    const forwardedFor =
-      request.headers.get(
-        "x-forwarded-for"
-      );
+    const forwardedFor = request.headers.get("x-forwarded-for");
 
-    const realIp =
-      forwardedFor
-        ? forwardedFor
-            .split(",")[0]
-            .trim()
-        : "unknown";
+    const realIp = forwardedFor ? forwardedFor.split(",")[0].trim() : "unknown";
 
     /*
       DETECTAR PAÍS
     */
 
-    const country =
-      request.headers.get(
-        "x-vercel-ip-country"
-      ) || "unknown";
+    const country = request.headers.get("x-vercel-ip-country") || "unknown";
 
-    const body =
-      await request.json();
+    const body = await request.json();
 
-    const userMessage =
-      body.message;
+    const userMessage = body.message;
 
     /*
       VALIDAR MENSAJE
     */
 
-    if (
-      !userMessage ||
-      typeof userMessage !==
-        "string"
-    ) {
-
+    if (!userMessage || typeof userMessage !== "string") {
       return NextResponse.json(
         {
-          error:
-            "Mensaje inválido",
+          error: "Mensaje inválido",
         },
         {
           status: 400,
-        }
+        },
       );
-
     }
 
-    const cleanMessage =
-      userMessage.trim();
+    const cleanMessage = userMessage.trim();
 
     /*
       VACÍO
     */
 
-    if (
-      !cleanMessage
-    ) {
-
+    if (!cleanMessage) {
       return NextResponse.json(
         {
-          error:
-            "Mensaje vacío",
+          error: "Mensaje vacío",
         },
         {
           status: 400,
-        }
+        },
       );
-
     }
 
     /*
       MUY CORTO
     */
 
-    if (
-      cleanMessage.length < 10
-    ) {
-
+    if (cleanMessage.length < 10) {
       return NextResponse.json(
         {
-          error:
-            "Mensaje demasiado corto",
+          error: "Mensaje demasiado corto",
         },
         {
           status: 400,
-        }
+        },
       );
-
     }
 
     /*
       MUY LARGO
     */
 
-    if (
-      cleanMessage.length > 500
-    ) {
-
+    if (cleanMessage.length > 500) {
       return NextResponse.json(
         {
-          error:
-            "Mensaje demasiado largo",
+          error: "Mensaje demasiado largo",
         },
         {
           status: 400,
-        }
+        },
       );
-
     }
 
     /*
       CARACTERES RAROS
     */
 
-    const strangeCharacters =
-      /[@#$%^&*_=+{}[\]\\|<>]{8,}/;
+    const strangeCharacters = /[@#$%^&*_=+{}[\]\\|<>]{8,}/;
 
-    if (
-      strangeCharacters.test(
-        cleanMessage
-      )
-    ) {
-
+    if (strangeCharacters.test(cleanMessage)) {
       return NextResponse.json(
         {
-          error:
-            "Mensaje bloqueado por caracteres sospechosos",
+          error: "Mensaje bloqueado por caracteres sospechosos",
         },
         {
           status: 400,
-        }
+        },
       );
-
     }
 
     /*
       TEXTO BASURA
     */
 
-    if (
-      isGibberish(
-        cleanMessage
-      )
-    ) {
-
+    if (isGibberish(cleanMessage)) {
       return NextResponse.json(
         {
-          error:
-            "Mensaje inválido o sin sentido",
+          error: "Mensaje inválido o sin sentido",
         },
         {
           status: 400,
-        }
+        },
       );
-
     }
 
     /*
       PROMPT INJECTION
     */
 
-    const normalizedMessage =
-      cleanMessage
-        .toLowerCase()
-        .normalize("NFD")
-        .replace(
-          /[\u0300-\u036f]/g,
-          ""
-        );
+    const normalizedMessage = cleanMessage
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "");
 
-    const blockedDetected =
-      blockedPatterns.some(
-        (pattern) =>
-          normalizedMessage.includes(
-            pattern
-          )
-      );
+    const blockedDetected = blockedPatterns.some((pattern) =>
+      normalizedMessage.includes(pattern),
+    );
 
-    if (
-      blockedDetected
-    ) {
-
+    if (blockedDetected) {
       return NextResponse.json(
         {
-          error:
-            "Intento de manipulación detectado",
+          error: "Intento de manipulación detectado",
         },
         {
           status: 400,
-        }
+        },
       );
-
     }
 
     /*
       REQUEST A GROQ
     */
 
-    const response =
-      await fetch(
-        "https://api.groq.com/openai/v1/chat/completions",
-        {
+    const response = await fetch(
+      "https://api.groq.com/openai/v1/chat/completions",
+      {
+        method: "POST",
 
-          method: "POST",
+        headers: {
+          "Content-Type": "application/json",
 
-          headers: {
+          Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
+        },
 
-            "Content-Type":
-              "application/json",
+        body: JSON.stringify({
+          model: "llama-3.3-70b-versatile",
 
-            Authorization:
-              `Bearer ${process.env.GROQ_API_KEY}`,
+          temperature: 0.7,
 
-          },
+          messages: [
+            {
+              role: "system",
 
-          body: JSON.stringify({
+              content: SYSTEM_PROMPT,
+            },
 
-            model:
-              "llama-3.3-70b-versatile",
+            {
+              role: "user",
 
-            temperature: 0.7,
-
-            messages: [
-
-              {
-                role: "system",
-
-                content:
-                  SYSTEM_PROMPT,
-              },
-
-              {
-                role: "user",
-
-                content:
-                  cleanMessage,
-              },
-
-            ],
-
-          }),
-
-        }
-      );
-
-    const data =
-      await response.json();
-
-    console.log(
-      "GROQ USAGE:",
-      data.usage
+              content: cleanMessage,
+            },
+          ],
+        }),
+      },
     );
 
-    console.log(
-      "COUNTRY:",
-      country
-    );
+    const data = await response.json();
 
-    console.log(
-      "IP:",
-      realIp
-    );
+    console.log("GROQ USAGE:", data.usage);
 
-    const content =
-      data
-        ?.choices?.[0]
-        ?.message?.content;
+    console.log("COUNTRY:", country);
+
+    console.log("IP:", realIp);
+
+    const content = data?.choices?.[0]?.message?.content;
 
     if (!content) {
-
-      return NextResponse.json(
-        {
-          error:
-            "Respuesta vacía de IA",
-        },
-        {
-          status: 500,
-        }
-      );
-
+      return NextResponse.json({
+        detection: "Sin respuesta",
+        explanation: "La IA no devolvió contenido.",
+        guidance: "Intenta reformular el mensaje.",
+      });
     }
 
     let parsed;
 
     try {
-
-      parsed =
-        JSON.parse(
-          content
-        );
-
+      parsed = JSON.parse(content);
     } catch {
-
-      return NextResponse.json(
-        {
-          error:
-            "La IA devolvió JSON inválido",
-        },
-        {
-          status: 500,
-        }
-      );
-
+      return NextResponse.json({
+        detection: "Error de formato",
+        explanation: "La respuesta de la IA no fue válida.",
+        guidance: "Intenta nuevamente.",
+      });
     }
 
     return NextResponse.json({
+      detection: parsed.detection,
 
-      detection:
-        parsed.detection,
+      explanation: parsed.explanation,
 
-      explanation:
-        parsed.explanation,
+      guidance: parsed.guidance,
 
-      guidance:
-        parsed.guidance,
-
-      country:
-        country,
+      country: country,
 
       usage: {
+        prompt_tokens: data?.usage?.prompt_tokens || 0,
 
-        prompt_tokens:
-          data?.usage?.prompt_tokens || 0,
+        completion_tokens: data?.usage?.completion_tokens || 0,
 
-        completion_tokens:
-          data?.usage?.completion_tokens || 0,
-
-        total_tokens:
-          data?.usage?.total_tokens || 0,
-
+        total_tokens: data?.usage?.total_tokens || 0,
       },
-
     });
-
   } catch (error) {
-
     console.error(error);
 
-    return NextResponse.json(
-      {
-        error:
-          "Error interno del servidor",
-      },
-      {
-        status: 500,
-      }
-    );
-
+    return NextResponse.json({
+      detection: "Error interno",
+      explanation: "Ocurrió un problema en el servidor.",
+      guidance: "Espera unos segundos e inténtalo de nuevo.",
+    });
   }
-
 }

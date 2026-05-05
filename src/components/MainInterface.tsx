@@ -288,11 +288,15 @@ export default function MainInterface() {
 
     setMemory(updatedMemory);
 
+    // PRIMERO actualizamos UI con la respuesta
+    setResponse(result);
+
     /*
       CONSUMIR CONSULTA
       EN SUPABASE
     */
 
+    // DESPUÉS consumimos (pero SIN bloquear la respuesta)
     await consumeQueryFromDB(visitorId);
 
     /*
@@ -300,6 +304,7 @@ export default function MainInterface() {
       CONSULTAS
     */
 
+    // ACTUALIZAMOS contador
     const updatedRemaining = await getRemainingQueriesFromDB(visitorId);
 
     setRemainingQueries(updatedRemaining);
@@ -415,14 +420,20 @@ export default function MainInterface() {
                     : "Patrón Detectado"}
               </h2>
 
-              <p className="text-cyan-100">{detectionText}</p>
+              <p className="text-cyan-100">
+                {detectionText ||
+                  "No se detectó un patrón claro en este mensaje."}
+              </p>
             </div>
 
             {showExplanation && (
               <div>
                 <h2 className="text-cyan-300 font-bold mb-2">Explicación</h2>
 
-                <p className="text-cyan-100">{explanationText}</p>
+                <p className="text-cyan-100">
+                  {explanationText ||
+                    "No hay suficiente información para generar una explicación."}
+                </p>
               </div>
             )}
 
@@ -430,7 +441,10 @@ export default function MainInterface() {
               <div>
                 <h2 className="text-cyan-300 font-bold mb-2">Orientación</h2>
 
-                <p className="text-cyan-100">{guidanceText}</p>
+                <p className="text-cyan-100">
+                  {guidanceText ||
+                    "Intenta dar más contexto para recibir una orientación más precisa."}
+                </p>
               </div>
             )}
           </div>
