@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { supabase } from "@/lib/supabase";
 
 const SYSTEM_PROMPT = `
 Eres un analista especializado en manipulación emocional, dinámicas psicológicas tóxicas, gaslighting, culpa inducida, chantaje emocional, control psicológico, dependencia emocional, invalidación emocional y abuso psicológico sutil.
@@ -167,6 +168,39 @@ export async function POST(request: Request) {
     const body = await request.json();
 
     const userMessage = body.message;
+
+    /*
+       LÍMITE POR IP
+     */
+
+    const today = new Date().toISOString().split("T")[0];
+
+    /*
+        BUSCAR IP
+      */
+
+    const { data: ipUsage } = await supabase
+      .from("ip_daily_usage")
+      .select("*")
+      .eq("ip", realIp)
+      .eq("usage_date", today)
+      .maybeSingle();
+
+    /*
+         SI YA LLEGÓ
+         AL LÍMITE
+       */
+
+    if (ipUsage && ipUsage.queries_used >= 3) {
+      return NextResponse.json(
+        {
+          error: "Has alcanzado el límite diario de consultas",
+        },
+        {
+          status: 429,
+        },
+      );
+    }
 
     /*
       VALIDAR MENSAJE
@@ -351,6 +385,27 @@ export async function POST(request: Request) {
         explanation: "La respuesta de la IA no fue válida.",
         guidance: "Intenta nuevamente.",
       });
+    }
+
+    /*
+       ACTUALIZAR USO POR IP
+     */
+
+    if (!ipUsage) {
+      await supabase.from("ip_daily_usage").insert([
+        {
+          ip: realIp,
+          usage_date: today,
+          queries_used: 1,
+        },
+      ]);
+    } else {
+      await supabase
+        .from("ip_daily_usage")
+        .update({
+          queries_used: ipUsage.queries_used + 1,
+        })
+        .eq("id", ipUsage.id);
     }
 
     return NextResponse.json({
