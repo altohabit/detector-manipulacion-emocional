@@ -49,7 +49,11 @@ export async function registerVisitor(visitorId: string) {
       },
     ]);
 
-    if (insertError) {
+    /*
+      IGNORAR DUPLICADOS
+    */
+
+    if (insertError && insertError.code !== "23505") {
       console.error("ERROR INSERTANDO VISITOR:", insertError);
     }
 
@@ -73,22 +77,38 @@ export async function registerVisitor(visitorId: string) {
   }
 }
 
-export async function getRemainingQueriesFromDB(visitorId: string) {
+/*
+  OBTENER CONSULTAS RESTANTES
+*/
+
+export async function getRemainingQueriesFromDB(
+  visitorId: string,
+  userId?: string,
+) {
   const today = getTodayDate();
 
   console.log("TODAY DATE:", today);
 
-  const { data, error } = await supabase
-    .from("daily_usage")
-    .select("*")
-    .eq("visitor_id", visitorId)
-    .eq("usage_date", today)
-    .maybeSingle();
+  let query = supabase.from("daily_usage").select("*").eq("usage_date", today);
+
+  /*
+    PRIORIDAD:
+    USER AUTH
+  */
+
+  if (userId) {
+    query = query.eq("user_id", userId);
+  } else {
+    query = query.eq("visitor_id", visitorId);
+  }
+
+  const { data, error } = await query.maybeSingle();
 
   /*
     ERROR DE LECTURA
     → NO REGALAR CONSULTAS
   */
+
   if (error) {
     console.error("ERROR LEYENDO DAILY USAGE:", error);
     return 0;
@@ -97,21 +117,40 @@ export async function getRemainingQueriesFromDB(visitorId: string) {
   /*
     SI NO EXISTE
   */
+
   if (!data) {
-    const { error: insertError } = await supabase.from("daily_usage").insert([
-      {
-        visitor_id: visitorId,
-        usage_date: today,
-        queries_used: 0,
-      },
-    ]);
+    const insertPayload: {
+      visitor_id?: string;
+      user_id?: string;
+      usage_date: string;
+      queries_used: number;
+    } = {
+      usage_date: today,
+      queries_used: 0,
+    };
+
+    /*
+      USER AUTH
+    */
+
+    if (userId) {
+      insertPayload.user_id = userId;
+    } else {
+      insertPayload.visitor_id = visitorId;
+    }
+
+    const { error: insertError } = await supabase
+      .from("daily_usage")
+      .insert([insertPayload]);
 
     /*
       SI FALLA EL INSERT
-      → NO DAR ACCESO (PROTECCIÓN)
+      → NO DAR ACCESO
     */
+
     if (insertError) {
       console.error("ERROR INSERTANDO DAILY USAGE:", insertError);
+
       return 0;
     }
 
@@ -120,8 +159,8 @@ export async function getRemainingQueriesFromDB(visitorId: string) {
 
   /*
     PROTECCIÓN
-    CONTRA VALORES ROTOS
   */
+
   if (typeof data.queries_used !== "number" || data.queries_used < 0) {
     return DAILY_LIMIT;
   }
@@ -129,32 +168,62 @@ export async function getRemainingQueriesFromDB(visitorId: string) {
   return Math.max(0, DAILY_LIMIT - data.queries_used);
 }
 
-export async function consumeQueryFromDB(visitorId: string) {
+/*
+  CONSUMIR CONSULTA
+*/
+
+export async function consumeQueryFromDB(visitorId: string, userId?: string) {
   const today = getTodayDate();
 
-  const { data, error } = await supabase
-    .from("daily_usage")
-    .select("*")
-    .eq("visitor_id", visitorId)
-    .eq("usage_date", today)
-    .maybeSingle();
+  let query = supabase.from("daily_usage").select("*").eq("usage_date", today);
+
+  /*
+    PRIORIDAD:
+    USER AUTH
+  */
+
+  if (userId) {
+    query = query.eq("user_id", userId);
+  } else {
+    query = query.eq("visitor_id", visitorId);
+  }
+
+  const { data, error } = await query.maybeSingle();
 
   if (error) {
     console.error("ERROR BUSCANDO DAILY USAGE:", error);
+
     return;
   }
 
   /*
     SI NO EXISTE
   */
+
   if (!data) {
-    const { error: insertError } = await supabase.from("daily_usage").insert([
-      {
-        visitor_id: visitorId,
-        usage_date: today,
-        queries_used: 1,
-      },
-    ]);
+    const insertPayload: {
+      visitor_id?: string;
+      user_id?: string;
+      usage_date: string;
+      queries_used: number;
+    } = {
+      usage_date: today,
+      queries_used: 1,
+    };
+
+    /*
+      USER AUTH
+    */
+
+    if (userId) {
+      insertPayload.user_id = userId;
+    } else {
+      insertPayload.visitor_id = visitorId;
+    }
+
+    const { error: insertError } = await supabase
+      .from("daily_usage")
+      .insert([insertPayload]);
 
     if (insertError) {
       console.error("ERROR INSERTANDO CONSUMO:", insertError);
@@ -164,16 +233,19 @@ export async function consumeQueryFromDB(visitorId: string) {
   }
 
   /*
-    EVITAR EXCEDER LÍMITE
+    EVITAR EXCEDER
   */
+
   if (data.queries_used >= DAILY_LIMIT) {
-    console.log("LÍMITE YA ALCANZADO, NO SUMAR");
+    console.log("LÍMITE YA ALCANZADO");
+
     return;
   }
 
   /*
     ACTUALIZAR USO
   */
+
   const { error: updateError } = await supabase
     .from("daily_usage")
     .update({

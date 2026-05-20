@@ -4,6 +4,10 @@ import Image from "next/image";
 
 import { useEffect, useState } from "react";
 
+import { useRouter } from "next/navigation";
+
+import { supabase } from "@/lib/supabase";
+
 import { analyzeSituation } from "@/services/psychologyAnalyzer";
 
 import { AnalysisResponse } from "@/types/analysis";
@@ -29,6 +33,8 @@ import {
 import { logAnalysis } from "@/services/analysisLogger";
 
 export default function MainInterface() {
+  const router = useRouter();
+
   const [message, setMessage] = useState("");
 
   const [loading, setLoading] = useState(false);
@@ -56,6 +62,12 @@ export default function MainInterface() {
 
   const [visitorId, setVisitorId] = useState("");
 
+  /*
+    USER AUTH
+  */
+
+  const [userId, setUserId] = useState("");
+
   const detectionText = useTypewriter(response?.detection || "", !!response);
 
   const explanationText = useTypewriter(
@@ -67,6 +79,31 @@ export default function MainInterface() {
 
   useEffect(() => {
     async function initialize() {
+      /*
+        VALIDAR SESIÓN
+      */
+
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      /*
+        SI NO HAY LOGIN
+      */
+
+      if (!session?.user) {
+        router.push("/auth");
+        return;
+      }
+
+      /*
+        USER AUTH
+      */
+
+      const user = session.user;
+
+      setUserId(user.id);
+
       /*
         CARGAR MEMORIA
       */
@@ -101,7 +138,7 @@ export default function MainInterface() {
         CONSULTAS RESTANTES
       */
 
-      const remaining = await getRemainingQueriesFromDB(id);
+      const remaining = await getRemainingQueriesFromDB(id, user.id);
 
       if (typeof remaining === "number" && remaining >= 0) {
         setRemainingQueries(remaining);
@@ -113,7 +150,7 @@ export default function MainInterface() {
     }
 
     initialize();
-  }, []);
+  }, [router]);
 
   async function handleAnalyze() {
     if (!message.trim()) {
@@ -230,8 +267,7 @@ export default function MainInterface() {
     const result = await apiResponse.json();
 
     /*
-      REGISTRAR
-      REQUEST
+      REGISTRAR REQUEST
     */
 
     registerRequest();
@@ -288,24 +324,23 @@ export default function MainInterface() {
 
     setMemory(updatedMemory);
 
-    // PRIMERO actualizamos UI con la respuesta
+    /*
+      RESPUESTA UI
+    */
+
     setResponse(result);
 
     /*
       CONSUMIR CONSULTA
-      EN SUPABASE
     */
 
-    // DESPUÉS consumimos (pero SIN bloquear la respuesta)
-    await consumeQueryFromDB(visitorId);
+    await consumeQueryFromDB(visitorId, userId);
 
     /*
-      ACTUALIZAR
-      CONSULTAS
+      ACTUALIZAR CONSULTAS
     */
 
-    // ACTUALIZAMOS contador
-    const updatedRemaining = await getRemainingQueriesFromDB(visitorId);
+    const updatedRemaining = await getRemainingQueriesFromDB(visitorId, userId);
 
     setRemainingQueries(updatedRemaining);
 
@@ -328,6 +363,17 @@ export default function MainInterface() {
     setShowExplanation(false);
 
     setShowGuidance(false);
+  }
+
+  if (!initialized && !userId) {
+    return (
+      <main className="min-h-screen bg-black flex items-center justify-center">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(0,255,255,0.12),transparent_70%)]" />
+        <p className="text-cyan-400 text-xl animate-pulse relative z-10">
+          Cargando...
+        </p>
+      </main>
+    );
   }
 
   return (
@@ -353,9 +399,13 @@ export default function MainInterface() {
             </div>
           </div>
 
-          <h1 className="text-4xl md:text-5xl font-bold mt-6 text-center">
-            Detector de Manipulación Emocional
+          <h1 className="text-4xl md:text-6xl font-extrabold mt-6 text-center text-cyan-300 drop-shadow-[0_0_25px_rgba(0,255,255,0.7)] tracking-wide">
+            AltoHábit
           </h1>
+
+          <h2 className="text-2xl md:text-3xl font-bold mt-2 text-center text-cyan-400">
+            Detector de Manipulación Emocional
+          </h2>
 
           <p className="text-cyan-300/80 mt-4 text-center max-w-xl">
             Analiza patrones emocionales manipulativos, gaslighting y control
