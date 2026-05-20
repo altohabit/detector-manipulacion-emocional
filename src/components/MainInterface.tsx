@@ -291,6 +291,8 @@ export default function MainInterface() {
     await logAnalysis({
       visitorId: visitorId,
 
+      userId: userId,
+
       userMessage: message,
 
       detection: result.detection,

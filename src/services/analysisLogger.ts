@@ -1,7 +1,7 @@
-import { supabase }
-  from "@/lib/supabase";
+import { supabase } from "@/lib/supabase";
 
 interface LogAnalysisParams {
+  userId: string;
 
   visitorId: string;
 
@@ -16,12 +16,12 @@ interface LogAnalysisParams {
   outputTokens: number;
 
   totalTokens: number;
-
 }
 
 export async function logAnalysis({
-
   visitorId,
+
+  userId,
 
   userMessage,
 
@@ -34,68 +34,43 @@ export async function logAnalysis({
   outputTokens,
 
   totalTokens,
-
 }: LogAnalysisParams) {
-
   /*
     COSTO ESTIMADO
     GROQ
   */
 
-  const estimatedCost =
+  const estimatedCost = (totalTokens / 1000000) * 0.59;
 
-    (
-      totalTokens / 1000000
-    ) * 0.59;
+  const { error } = await supabase.from("analysis_logs").insert([
+    {
+      visitor_id: visitorId,
 
-  const {
-    error,
-  } = await supabase
-    .from("analysis_logs")
-    .insert([
+      user_id: userId,
 
-      {
+      user_message: userMessage,
 
-        visitor_id:
-          visitorId,
+      detection: detection,
 
-        user_message:
-          userMessage,
+      emotional_category: emotionalCategory,
 
-        detection:
-          detection,
+      input_tokens: inputTokens,
 
-        emotional_category:
-          emotionalCategory,
+      output_tokens: outputTokens,
 
-        input_tokens:
-          inputTokens,
+      total_tokens: totalTokens,
 
-        output_tokens:
-          outputTokens,
+      estimated_cost: estimatedCost,
 
-        total_tokens:
-          totalTokens,
-
-        estimated_cost:
-          estimatedCost,
-
-        country: null,
-
-      },
-
-    ]);
+      country: null,
+    },
+  ]);
 
   if (error) {
-
     console.error(
-
       "ERROR GUARDANDO ANALYSIS LOG:",
 
-      error
-
+      error,
     );
-
   }
-
 }
