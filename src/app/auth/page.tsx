@@ -173,17 +173,19 @@ export default function AuthPage() {
             </div>
           )}
 
-          <button
-            onClick={() => {
-              setIsLogin(!isLogin);
-              setMessage("");
-            }}
-            className="mt-8 text-cyan-400 hover:text-cyan-300 transition-all"
-          >
-            {isLogin
-              ? "¿No tienes cuenta? Regístrate"
-              : "¿Ya tienes cuenta? Inicia sesión"}
-          </button>
+          {!isForgotPassword && (
+            <button
+              onClick={() => {
+                setIsLogin(!isLogin);
+                setMessage("");
+              }}
+              className="mt-8 text-cyan-400 hover:text-cyan-300 transition-all"
+            >
+              {isLogin
+                ? "¿No tienes cuenta? Regístrate"
+                : "¿Ya tienes cuenta? Inicia sesión"}
+            </button>
+          )}
 
           {isLogin && !isForgotPassword && (
             <button
