@@ -357,6 +357,11 @@ export default function MainInterface() {
     setLoading(false);
   }
 
+  async function handleSignOut() {
+    await supabase.auth.signOut();
+    router.push("/auth");
+  }
+
   function handleClear() {
     setMessage("");
 
@@ -444,6 +449,13 @@ export default function MainInterface() {
               className="flex-1 border border-cyan-500/40 hover:border-cyan-400 text-cyan-300 py-3 rounded-2xl transition-all duration-300"
             >
               Limpiar
+            </button>
+
+            <button
+              onClick={handleSignOut}
+              className="flex-1 border border-red-500/40 hover:border-red-400 text-red-400 py-3 rounded-2xl transition-all duration-300"
+            >
+              Cerrar Sesión
             </button>
           </div>
         </div>
