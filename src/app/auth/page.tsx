@@ -21,6 +21,8 @@ export default function AuthPage() {
 
   const [message, setMessage] = useState("");
 
+  const [isForgotPassword, setIsForgotPassword] = useState(false);
+
   async function handleAuth() {
     if (!email || !password) {
       setMessage("Completa todos los campos.");
@@ -75,6 +77,24 @@ export default function AuthPage() {
       setMessage("Ocurrió un error inesperado.");
     }
 
+    setLoading(false);
+  }
+
+  async function handleForgotPassword() {
+    if (!email) {
+      setMessage("Escribe tu correo electrónico.");
+      return;
+    }
+    setLoading(true);
+    setMessage("");
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: "https://detector-manipulacion-emocional.vercel.app/auth",
+    });
+    if (error) {
+      setMessage(error.message);
+    } else {
+      setMessage("Revisa tu correo para restablecer tu contraseña.");
+    }
     setLoading(false);
   }
 
@@ -139,7 +159,7 @@ export default function AuthPage() {
             />
 
             <button
-              onClick={handleAuth}
+              onClick={isForgotPassword ? handleForgotPassword : handleAuth}
               disabled={loading}
               className="w-full bg-cyan-400 hover:bg-cyan-300 text-black font-bold py-4 rounded-2xl transition-all duration-300 disabled:opacity-50"
             >
@@ -164,6 +184,30 @@ export default function AuthPage() {
               ? "¿No tienes cuenta? Regístrate"
               : "¿Ya tienes cuenta? Inicia sesión"}
           </button>
+
+          {isLogin && !isForgotPassword && (
+            <button
+              onClick={() => {
+                setIsForgotPassword(true);
+                setMessage("");
+              }}
+              className="mt-4 block text-cyan-600 hover:text-cyan-400 transition-all text-sm"
+            >
+              ¿Olvidaste tu contraseña?
+            </button>
+          )}
+
+          {isForgotPassword && (
+            <button
+              onClick={() => {
+                setIsForgotPassword(false);
+                setMessage("");
+              }}
+              className="mt-8 text-cyan-400 hover:text-cyan-300 transition-all"
+            >
+              Volver al inicio de sesión
+            </button>
+          )}
         </div>
       </div>
     </main>
