@@ -88,7 +88,8 @@ export default function AuthPage() {
     setLoading(true);
     setMessage("");
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: "https://detector-manipulacion-emocional.vercel.app/auth",
+      redirectTo:
+        "https://detector-manipulacion-emocional.vercel.app/reset-password",
     });
     if (error) {
       setMessage(error.message);
