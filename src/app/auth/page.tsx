@@ -117,7 +117,7 @@ export default function AuthPage() {
       <div className="relative z-10 w-full max-w-6xl grid md:grid-cols-2 gap-10 items-center">
         {/* PERSONAJE */}
         <div className="flex justify-center">
-          <div className="relative w-[430px] h-[760px] animate-[float_3s_ease-in-out_infinite]">
+          <div className="relative w-[280px] h-[500px] md:w-[430px] md:h-[760px] animate-[float_3s_ease-in-out_infinite]">
             {/* Glow */}
             <div className="absolute inset-0 bg-cyan-400/30 blur-[120px] rounded-full animate-pulse" />
 
