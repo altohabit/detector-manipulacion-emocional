@@ -105,7 +105,7 @@ export default function AuthPage() {
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(0,255,255,0.12),transparent_70%)]" />
 
       {/* TÍTULOS */}
-      <div className="relative z-10 text-center mb-12">
+      <div className="relative z-10 text-center mb-20">
         <h1 className="text-5xl md:text-6xl font-extrabold text-cyan-300 tracking-wide drop-shadow-[0_0_25px_rgba(0,255,255,0.7)]">
           AltoHábit
         </h1>
@@ -114,7 +114,7 @@ export default function AuthPage() {
         </p>
       </div>
 
-      <div className="relative z-10 w-full max-w-6xl grid md:grid-cols-2 gap-12 items-center">
+      <div className="relative z-10 w-full max-w-6xl grid md:grid-cols-2 gap-20 items-center">
         {/* PERSONAJE */}
         <div className="flex justify-center">
           <div className="relative w-[200px] h-[350px] md:w-[430px] md:h-[760px] animate-[float_3s_ease-in-out_infinite]">
