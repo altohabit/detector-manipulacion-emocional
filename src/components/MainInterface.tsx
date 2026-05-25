@@ -501,6 +501,16 @@ export default function MainInterface() {
               </div>
             )}
 
+            {showExplanation && response?.impact && (
+              <div>
+                <h2 className="text-cyan-300 font-bold mb-2">
+                  Impacto Emocional
+                </h2>
+
+                <p className="text-cyan-100">{response.impact}</p>
+              </div>
+            )}
+
             {showGuidance && (
               <div>
                 <h2 className="text-cyan-300 font-bold mb-2">Orientación</h2>

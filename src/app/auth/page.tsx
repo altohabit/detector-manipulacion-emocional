@@ -70,9 +70,7 @@ export default function AuthPage() {
         return;
       }
 
-      setMessage(
-        "Revisa tu correo y confirma tu cuenta antes de iniciar sesión.",
-      );
+      setMessage("Registro exitoso. Ya puedes iniciar sesión.");
     } catch {
       setMessage("Ocurrió un error inesperado.");
     }
