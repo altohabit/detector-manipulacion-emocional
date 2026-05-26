@@ -23,7 +23,6 @@ const irrelevantPatterns = [
 ];
 
 const manipulationAttempts = [
-
   "ignora instrucciones",
 
   "ignora las instrucciones",
@@ -63,7 +62,6 @@ const manipulationAttempts = [
   "bypass",
 
   "jailbreak",
-
 ];
 
 const crisisPatterns = [
@@ -84,7 +82,6 @@ const crisisPatterns = [
 */
 
 const toxicPatterns = [
-
   "esta app es una porqueria",
 
   "no sirve",
@@ -104,70 +101,48 @@ const toxicPatterns = [
   "estafa",
 
   "idiotez",
-
 ];
 
-function normalizeText(
-  text: string
-) {
+function normalizeText(text: string) {
+  return (
+    text
 
-  return text
+      .toLowerCase()
 
-    .toLowerCase()
+      .normalize("NFD")
 
-    .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
 
-    .replace(
-      /[\u0300-\u036f]/g,
-      ""
-    )
-
-    /*
+      /*
       CONVERTIR NÚMEROS
     */
 
-    .replace(
-      /[0-9]/g,
-      (num) => {
-
-        const map: Record<
-          string,
-          string
-        > = {
-
+      .replace(/[0-9]/g, (num) => {
+        const map: Record<string, string> = {
           "0": "o",
           "1": "i",
           "3": "e",
           "4": "a",
           "5": "s",
           "7": "t",
-
         };
 
         return map[num] || num;
+      })
 
-      }
-    )
-
-    /*
+      /*
       ELIMINAR ESPACIOS
     */
 
-    .replace(
-      /\s+/g,
-      ""
-    )
+      .replace(/\s+/g, " ")
 
-    /*
+      /*
       ELIMINAR TODO
       MENOS LETRAS
     */
 
-    .replace(
-      /[^a-zñáéíóú]/g,
-      ""
-    );
-
+      .replace(/[^a-zñáéíóú]/g, "")
+  );
 }
 
 /*
@@ -175,58 +150,29 @@ function normalizeText(
   REPETICIÓN EXCESIVA
 */
 
-function hasExcessiveRepetition(
-  text: string
-) {
-
-  const clean =
-    text
-      .toLowerCase()
-      .replace(
-        /[^a-záéíóúñ\s]/g,
-        ""
-      );
+function hasExcessiveRepetition(text: string) {
+  const clean = text.toLowerCase().replace(/[^a-záéíóúñ\s]/g, "");
 
   /*
     PALABRAS
     REPETIDAS
   */
 
-  const words =
-    clean
-      .split(/\s+/)
-      .filter(Boolean);
+  const words = clean.split(/\s+/).filter(Boolean);
 
-  const wordCount:
-    Record<
-      string,
-      number
-    > = {};
+  const wordCount: Record<string, number> = {};
 
-  for (
-    const word of words
-  ) {
-
-    wordCount[word] =
-      (
-        wordCount[word] ||
-        0
-      ) + 1;
+  for (const word of words) {
+    wordCount[word] = (wordCount[word] || 0) + 1;
 
     /*
       MISMA PALABRA
       MUCHAS VECES
     */
 
-    if (
-      word.length > 2 &&
-      wordCount[word] >= 6
-    ) {
-
+    if (word.length > 2 && wordCount[word] >= 6) {
       return true;
-
     }
-
   }
 
   /*
@@ -235,21 +181,13 @@ function hasExcessiveRepetition(
     REPETIDOS
   */
 
-  const repeatedChars =
-    /(.)\1{7,}/;
+  const repeatedChars = /(.)\1{7,}/;
 
-  if (
-    repeatedChars.test(
-      clean
-    )
-  ) {
-
+  if (repeatedChars.test(clean)) {
     return true;
-
   }
 
   return false;
-
 }
 
 /*
@@ -257,28 +195,15 @@ function hasExcessiveRepetition(
   BASURA
 */
 
-function isGibberish(
-  text: string
-) {
-
-  const clean =
-    text
-      .toLowerCase()
-      .replace(
-        /[^a-záéíóúñ]/g,
-        ""
-      );
+function isGibberish(text: string) {
+  const clean = text.toLowerCase().replace(/[^a-záéíóúñ]/g, "");
 
   /*
     MUY CORTO
   */
 
-  if (
-    clean.length < 8
-  ) {
-
+  if (clean.length < 8) {
     return false;
-
   }
 
   /*
@@ -286,17 +211,10 @@ function isGibberish(
     REPETIDAS
   */
 
-  const repeatedLetters =
-    /(.)\1{4,}/;
+  const repeatedLetters = /(.)\1{4,}/;
 
-  if (
-    repeatedLetters.test(
-      clean
-    )
-  ) {
-
+  if (repeatedLetters.test(clean)) {
     return true;
-
   }
 
   /*
@@ -304,17 +222,10 @@ function isGibberish(
     REPETIDOS
   */
 
-  const repeatedPattern =
-    /^(.{1,4})\1+$/;
+  const repeatedPattern = /^(.{1,4})\1+$/;
 
-  if (
-    repeatedPattern.test(
-      clean
-    )
-  ) {
-
+  if (repeatedPattern.test(clean)) {
     return true;
-
   }
 
   /*
@@ -322,21 +233,12 @@ function isGibberish(
     VOCALES
   */
 
-  const vowels =
-    clean.match(
-      /[aeiouáéíóú]/g
-    ) || [];
+  const vowels = clean.match(/[aeiouáéíóú]/g) || [];
 
-  const vowelRatio =
-    vowels.length /
-    clean.length;
+  const vowelRatio = vowels.length / clean.length;
 
-  if (
-    vowelRatio < 0.20
-  ) {
-
+  if (vowelRatio < 0.2) {
     return true;
-
   }
 
   /*
@@ -344,18 +246,10 @@ function isGibberish(
     LETRAS ÚNICAS
   */
 
-  const uniqueChars =
-    new Set(
-      clean.split("")
-    );
+  const uniqueChars = new Set(clean.split(""));
 
-  if (
-    uniqueChars.size <= 3 &&
-    clean.length > 8
-  ) {
-
+  if (uniqueChars.size <= 3 && clean.length > 8) {
     return true;
-
   }
 
   /*
@@ -363,16 +257,10 @@ function isGibberish(
     Y MUY LARGO
   */
 
-  const noSpaces =
-    !text.includes(" ");
+  const noSpaces = !text.includes(" ");
 
-  if (
-    noSpaces &&
-    clean.length > 15
-  ) {
-
+  if (noSpaces && clean.length > 15) {
     return true;
-
   }
 
   /*
@@ -380,94 +268,59 @@ function isGibberish(
     TECLADO
   */
 
-  const keyboardPatterns = [
-    "asdf",
-    "qwer",
-    "zxcv",
-    "qwerty",
-    "asdfgh",
-  ];
+  const keyboardPatterns = ["asdf", "qwer", "zxcv", "qwerty", "asdfgh"];
 
-  const hasKeyboardPattern =
-    keyboardPatterns.some(
-      (pattern) =>
-        clean.includes(pattern)
-    );
+  const hasKeyboardPattern = keyboardPatterns.some((pattern) =>
+    clean.includes(pattern),
+  );
 
-  if (
-    hasKeyboardPattern
-  ) {
-
+  if (hasKeyboardPattern) {
     return true;
-
   }
 
   return false;
-
 }
 
-export function validateMessage(
-  message: string
-) {
+export function validateMessage(message: string) {
+  const rawText = message.toLowerCase().trim();
 
-  const rawText =
-    message.toLowerCase().trim();
-
-  const normalizedText =
-    normalizeText(message);
+  const normalizedText = normalizeText(message);
 
   if (!rawText) {
-
     return {
       valid: false,
 
-      reason:
-        "Debes escribir una situación para analizar.",
+      reason: "Debes escribir una situación para analizar.",
     };
-
   }
 
-  if (
-    rawText.length < 10
-  ) {
-
+  if (rawText.length < 10) {
     return {
       valid: false,
 
-      reason:
-        "Describe mejor tu situación emocional.",
+      reason: "Describe mejor tu situación emocional.",
     };
-
   }
 
-  if (
-    rawText.length > 500
-  ) {
-
+  if (rawText.length > 500) {
     return {
       valid: false,
 
-      reason:
-        "Tu mensaje es demasiado largo.",
+      reason: "Tu mensaje es demasiado largo.",
     };
-
   }
 
   /*
     TEXTO BASURA
   */
 
-  if (
-    isGibberish(rawText)
-  ) {
-
+  if (isGibberish(rawText)) {
     return {
       valid: false,
 
       reason:
         "Tu mensaje no parece una situación emocional válida. Describe mejor lo que estás viviendo.",
     };
-
   }
 
   /*
@@ -475,66 +328,43 @@ export function validateMessage(
     EXCESIVA
   */
 
-  if (
-    hasExcessiveRepetition(
-      rawText
-    )
-  ) {
-
+  if (hasExcessiveRepetition(rawText)) {
     return {
-
       valid: false,
 
       reason:
         "Tu mensaje contiene demasiada repetición y no parece una situación emocional válida.",
-
     };
-
   }
 
   /*
     CARACTERES RAROS
   */
 
-  const strangeCharacters =
-    /[@#$%^&*_=+{}[\]\\|<>]{10,}/;
+  const strangeCharacters = /[@#$%^&*_=+{}[\]\\|<>]{10,}/;
 
-  if (
-    strangeCharacters.test(
-      rawText
-    )
-  ) {
-
+  if (strangeCharacters.test(rawText)) {
     return {
       valid: false,
 
-      reason:
-        "Mensaje bloqueado por caracteres sospechosos.",
+      reason: "Mensaje bloqueado por caracteres sospechosos.",
     };
-
   }
 
   /*
     PALABRAS OFENSIVAS
   */
 
-  const hasBadWord =
-    bannedWords.some(
-      (word) =>
-        normalizedText.includes(
-          normalizeText(word)
-        )
-    );
+  const hasBadWord = bannedWords.some((word) =>
+    normalizedText.includes(normalizeText(word)),
+  );
 
   if (hasBadWord) {
-
     return {
       valid: false,
 
-      reason:
-        "No puedo analizar mensajes ofensivos o vulgares.",
+      reason: "No puedo analizar mensajes ofensivos o vulgares.",
     };
-
   }
 
   /*
@@ -542,48 +372,34 @@ export function validateMessage(
     O AGRESIVAS
   */
 
-  const hasToxicContent =
-    toxicPatterns.some(
-      (pattern) =>
-        normalizedText.includes(
-          normalizeText(pattern)
-        )
-    );
+  const hasToxicContent = toxicPatterns.some((pattern) =>
+    normalizedText.includes(normalizeText(pattern)),
+  );
 
   if (hasToxicContent) {
-
     return {
-
       valid: false,
 
       reason:
         "Tu mensaje contiene lenguaje agresivo o destructivo. Reformula tu situación emocional.",
-
     };
-
   }
 
   /*
     TEMAS IRRELEVANTES
   */
 
-  const isIrrelevant =
-    irrelevantPatterns.some(
-      (pattern) =>
-        normalizedText.includes(
-          normalizeText(pattern)
-        )
-    );
+  const isIrrelevant = irrelevantPatterns.some((pattern) =>
+    normalizedText.includes(normalizeText(pattern)),
+  );
 
   if (isIrrelevant) {
-
     return {
       valid: false,
 
       reason:
         "Esta herramienta solo analiza situaciones emocionales y psicológicas.",
     };
-
   }
 
   /*
@@ -591,25 +407,16 @@ export function validateMessage(
     DE MANIPULACIÓN
   */
 
-  const manipulationDetected =
-    manipulationAttempts.some(
-      (pattern) =>
-        normalizedText.includes(
-          normalizeText(pattern)
-        )
-    );
+  const manipulationDetected = manipulationAttempts.some((pattern) =>
+    normalizedText.includes(normalizeText(pattern)),
+  );
 
-  if (
-    manipulationDetected
-  ) {
-
+  if (manipulationDetected) {
     return {
       valid: false,
 
-      reason:
-        "Mensaje bloqueado por intento de manipulación del sistema.",
+      reason: "Mensaje bloqueado por intento de manipulación del sistema.",
     };
-
   }
 
   /*
@@ -617,16 +424,11 @@ export function validateMessage(
     EMOCIONAL
   */
 
-  const isCrisis =
-    crisisPatterns.some(
-      (pattern) =>
-        normalizedText.includes(
-          normalizeText(pattern)
-        )
-    );
+  const isCrisis = crisisPatterns.some((pattern) =>
+    normalizedText.includes(normalizeText(pattern)),
+  );
 
   if (isCrisis) {
-
     return {
       valid: false,
 
@@ -635,11 +437,9 @@ export function validateMessage(
       reason:
         "Estoy detectando señales de un fuerte colapso emocional. Por favor busca apoyo humano inmediato de alguien de confianza o un profesional de salud mental. No enfrentes esto completamente sola o solo.",
     };
-
   }
 
   return {
     valid: true,
   };
-
 }
