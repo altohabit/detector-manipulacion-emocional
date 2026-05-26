@@ -45,7 +45,12 @@ export default function AuthPage() {
         });
 
         if (error) {
-          setMessage(error.message);
+          setMessage(
+            error.message === "Invalid login credentials"
+              ? "Correo o contraseña incorrectos"
+              : error.message,
+          );
+
           setLoading(false);
           return;
         }
