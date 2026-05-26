@@ -96,6 +96,17 @@ REGLAS PARA CADA CAMPO:
 - Fomenta reflexión, límites sanos y autocuidado emocional.
 - Nunca ordenes terminar relaciones automáticamente.
 - Nunca generes miedo extremo.
+
+CRISIS EMOCIONAL:
+
+Si detectas señales de suicidio, autolesiones, desesperación extrema o deseo de morir, responde SIEMPRE en JSON con este formato exacto y no salgas de él:
+{
+  "detection": "Estado emocional crítico detectado",
+  "explanation": "Estoy aquí contigo. Lo que sientes es real y merece atención inmediata. No estás solo/a en esto.",
+  "impact": "",
+  "guidance": "Por favor busca ayuda humana urgente. Contacta a alguien de confianza ahora mismo o llama a una línea de crisis emocional en tu país."
+}
+
 `;
 
 /*

@@ -74,6 +74,15 @@ const crisisPatterns = [
   "quiero desaparecer",
   "no puedo más",
   "mi vida no tiene sentido",
+  "me quiero suicidar",
+  "quiero suicidarme",
+  "quiero matarme",
+  "quiero hacerme daño",
+  "quiero lastimarme",
+  "no quiero existir",
+  "quiero dejar de existir",
+  "mejor muerto",
+  "mejor muerta",
 ];
 
 /*
