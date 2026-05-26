@@ -381,9 +381,11 @@ export async function POST(request: Request) {
 
     if (!content) {
       return NextResponse.json({
-        detection: "Sin respuesta",
-        explanation: "La IA no devolvió contenido.",
-        guidance: "Intenta reformular el mensaje.",
+        detection: "Mensaje no procesado",
+        explanation:
+          "No pudimos interpretar el mensaje enviado. Intenta escribir una frase más clara o completa.",
+        guidance:
+          "Evita usar símbolos aleatorios o textos sin sentido para obtener un mejor análisis.",
       });
     }
 
@@ -393,9 +395,11 @@ export async function POST(request: Request) {
       parsed = JSON.parse(content);
     } catch {
       return NextResponse.json({
-        detection: "Error de formato",
-        explanation: "La respuesta de la IA no fue válida.",
-        guidance: "Intenta nuevamente.",
+        detection: "Mensaje no interpretable",
+        explanation:
+          "No pudimos analizar el texto ingresado. Intenta escribir una frase más clara o completa.",
+        guidance:
+          "Evita usar símbolos aleatorios o textos sin sentido para obtener un análisis preciso.",
       });
     }
 
