@@ -214,10 +214,13 @@ export default function MainInterface() {
         setResponse({
           detection: "Estado emocional crítico detectado",
 
-          explanation: validation.reason || "",
+          explanation:
+            "Estoy aquí contigo. Lo que sientes es real y merece atención inmediata. No estás solo/a en esto.",
+
+          impact: "",
 
           guidance:
-            "Busca apoyo humano inmediato. Contacta a alguien de confianza, un profesional de salud mental o servicios de emergencia emocionales de tu país. No enfrentes este momento completamente sola o solo.",
+            "Por favor busca ayuda humana urgente. Contacta a alguien de confianza ahora mismo o llama a una línea de crisis emocional en tu país. No enfrentes este momento solo/a.",
         });
 
         setShowExplanation(true);
